@@ -1,0 +1,18 @@
+{
+  "bin": {
+    "signet": "bin/w3-seal.js"
+  },
+  "dependencies": {
+    "@noble/curves": "1.9.7",
+    "@noble/hashes": "1.8.0"
+  },
+  "description": "Provenance seals for agent-written content: canonical text hashing, EIP-191 wallet signatures, and a live verified-human registration check behind a public verify record.",
+  "license": "Apache-2.0",
+  "main": "src/index.js",
+  "name": "signet",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "type": "module",
+  "version": "0.1.0"
+}

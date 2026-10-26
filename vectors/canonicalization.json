@@ -1,0 +1,90 @@
+{
+  "c14n": "w3-text-v1",
+  "generated_by": "vectors/generate_vectors.py (Python, independent implementation)",
+  "vectors": [
+    {
+      "name": "basic-lf",
+      "input_b64": "SGVsbG8sIHdvcmxkLgpTZWNvbmQgbGluZS4K",
+      "canonical_b64": "SGVsbG8sIHdvcmxkLgpTZWNvbmQgbGluZS4K",
+      "canonical_sha256": "7e98a2374dce86e0b10b7179199a3701f3880ecc17161be99d0725257fd9fec9"
+    },
+    {
+      "name": "crlf-and-cr",
+      "input_b64": "TGluZSBvbmUNCkxpbmUgdHdvDUxpbmUgdGhyZWUNCg==",
+      "canonical_b64": "TGluZSBvbmUKTGluZSB0d28KTGluZSB0aHJlZQo=",
+      "canonical_sha256": "cb3bb6a82614f121c2628b97e465291be7a8492e004e98eb5d33a243ecf0cd24"
+    },
+    {
+      "name": "trailing-whitespace",
+      "input_b64": "VGl0bGUgICAKQm9keQkgCg==",
+      "canonical_b64": "VGl0bGUKQm9keQo=",
+      "canonical_sha256": "8e6e5a84f1dc71aa49a8eb5e8a4147ec99a76293558bea2059d3da4f3779f127"
+    },
+    {
+      "name": "trailing-blank-lines",
+      "input_b64": "VGV4dAoKCgo=",
+      "canonical_b64": "VGV4dAo=",
+      "canonical_sha256": "533bfd360a1274c99f13658e6c774d9dc3c4518cd1d31231e6503876509157db"
+    },
+    {
+      "name": "missing-final-newline",
+      "input_b64": "Tm8gbmV3bGluZSBhdCBlbmQ=",
+      "canonical_b64": "Tm8gbmV3bGluZSBhdCBlbmQK",
+      "canonical_sha256": "43c6333a0557391351d6797622c33c93f515946823c7090c7e467b437f4b3ea7"
+    },
+    {
+      "name": "empty",
+      "input_b64": "",
+      "canonical_b64": "",
+      "canonical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "blank-only",
+      "input_b64": "CgogCgkK",
+      "canonical_b64": "",
+      "canonical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "nfc-combining",
+      "input_b64": "Q2FmZcyBIGF1IGxhaXQK",
+      "canonical_b64": "Q2Fmw6kgYXUgbGFpdAo=",
+      "canonical_sha256": "1b6754b861aa4f2a2adbf2702c70e166204792fc32be83bf15f0fd2515162bcf"
+    },
+    {
+      "name": "bom-prefixed",
+      "input_b64": "77u/SGVhZGluZwpCb2R5Cg==",
+      "canonical_b64": "SGVhZGluZwpCb2R5Cg==",
+      "canonical_sha256": "c87773b0bbc287e7205c4fef15a144376f9075beeb671ef817a826bb60e17a8b"
+    },
+    {
+      "name": "zero-width-preserved",
+      "input_b64": "YeKAi2IK",
+      "canonical_b64": "YeKAi2IK",
+      "canonical_sha256": "6c9052cf18cae8f4c907b94e087049bae39a4508ef8c71d90021d072cb1e75f0"
+    },
+    {
+      "name": "interior-blanks-preserved",
+      "input_b64": "UGFyYSBvbmUKCgpQYXJhIHR3bwo=",
+      "canonical_b64": "UGFyYSBvbmUKCgpQYXJhIHR3bwo=",
+      "canonical_sha256": "e217ebaa93d9488a38145b2dd9a464329635c29fd02a6b85cdeaa41a8eede025"
+    },
+    {
+      "name": "leading-whitespace-preserved",
+      "input_b64": "ICBpbmRlbnRlZAoJdGFiYmVkCg==",
+      "canonical_b64": "ICBpbmRlbnRlZAoJdGFiYmVkCg==",
+      "canonical_sha256": "192878f917b697d851d7b4cffc14c875935601786a6b84fa3a6f0b4220b85fec"
+    },
+    {
+      "name": "emoji",
+      "input_b64": "U2VhbGVkIOKchQo=",
+      "canonical_b64": "U2VhbGVkIOKchQo=",
+      "canonical_sha256": "9b6b8c813a04a92734c473855ff14edf41137dbd4ec60f99f4ab171e33144c96"
+    },
+    {
+      "name": "mixed-endings-and-blanks",
+      "input_b64": "T25lDQpUd28KClRocmVlICAgDQoNCg==",
+      "canonical_b64": "T25lClR3bwoKVGhyZWUK",
+      "canonical_sha256": "54811906d6e8f243a4a1322380f842b8f505bae67298fab28f66f74429699b79"
+    }
+  ]
+}
