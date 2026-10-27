@@ -1,0 +1,37 @@
+{
+  "$schema": "https://mosvera.io/schema/0.1/template",
+  "id": "nova-glass",
+  "palette": {
+    "surface": "#1C1C1E",
+    "surface_alt": "#26262A",
+    "background": "#121214",
+    "border": "#4A7FA5",
+    "accent": "#C9933A",
+    "accent_2": "#8ABAD3",
+    "ink": "#F2F2F4",
+    "muted": "#9A9AA0",
+    "code_bg": "#101012",
+    "code_ink": "#8ABAD3"
+  },
+  "layout": {
+    "density": "spacious",
+    "max_width": "1240px",
+    "radius": "0px",
+    "shadow": "0 28px 80px rgba(0, 0, 0, 0.42)"
+  },
+  "motion": {
+    "duration": "320ms",
+    "pace": "cinematic"
+  },
+  "typography": {
+    "body": "Hanken Grotesk",
+    "display": "Fraunces",
+    "mono": "IBM Plex Mono",
+    "scale": "large"
+  },
+  "voice": {
+    "eyebrow": "Nova Glass",
+    "headline": "Graphite glass, cerulean edges, gold where it counts.",
+    "body": "Nova Glass is the estate's dark glass aesthetic: graphite surfaces at 78 percent over blur, cerulean borders, label cyan, gold-amber accents, 45-degree cut corners, no gradients."
+  }
+}

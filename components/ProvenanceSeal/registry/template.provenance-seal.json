@@ -1,0 +1,38 @@
+{
+  "$schema": "https://mosvera.io/schema/0.1/template",
+  "extensions": "component: ProvenanceSeal, invoked as <agent-seal>; densities full|compact|pill; tier and state carried in words in every density; full contract in the signet repository at components/ProvenanceSeal.",
+  "id": "provenance-seal",
+  "layout": {
+    "density": "compact",
+    "max_width": "760px",
+    "radius": "0px",
+    "shadow": "0 12px 40px rgba(0, 0, 0, 0.35)"
+  },
+  "motion": {
+    "duration": "120ms",
+    "pace": "quick"
+  },
+  "palette": {
+    "accent": "#C9933A",
+    "accent_2": "#8ABAD3",
+    "background": "#121214",
+    "border": "#4A7FA5",
+    "code_bg": "#101012",
+    "code_ink": "#8ABAD3",
+    "ink": "#F2F2F4",
+    "muted": "#9A9AA0",
+    "surface": "#1C1C1E",
+    "surface_alt": "#26262A"
+  },
+  "typography": {
+    "body": "Hanken Grotesk",
+    "display": "Hanken Grotesk",
+    "mono": "IBM Plex Mono",
+    "scale": "compact"
+  },
+  "voice": {
+    "body": "The seal states who wrote the content, whether a human approved it, and where to verify it. It claims nothing it has not checked.",
+    "eyebrow": "Provenance seal",
+    "headline": "Written by an agent. Backed by a unique verified human."
+  }
+}

@@ -1,0 +1,168 @@
+# Reusable Signet sealing workflow (design SPEC section 9).
+#
+# Publishing repositories call this workflow from a thin caller
+# (see examples/caller.yml). It seals changed content at publish
+# time, dries-runs on pull requests with an ephemeral key, commits
+# the seal files back without retriggering itself, and keeps a
+# tracking issue open while any seal awaits its chain anchor.
+#
+# Secret: SIGNET_SEALING_PRIVATE_KEY (the dedicated sealing
+# wallet's key) must be passed by the caller as a secret. It is
+# materialised to a mode-600 file for the sealing step only and
+# destroyed in an always-run step. Pull-request runs never receive
+# it: the workflow forces dry-run mode there and skips the
+# materialisation step entirely.
+
+name: signet-seal
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        type: string
+        required: false
+        default: signet.config.json
+    secrets:
+      SIGNET_SEALING_PRIVATE_KEY:
+        required: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  seal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Loop guard (never seal a seal commit)
+        id: guard
+        env:
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          if [[ "$HEAD_MESSAGE" == seal:* ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Head commit is a seal commit; nothing to do."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the publishing repository
+        if: steps.guard.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check out Signet
+        if: steps.guard.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: niclydon/signet
+          path: .signet
+          ref: main
+
+      - name: Collect changed files
+        if: steps.guard.outputs.skip != 'true'
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > "$RUNNER_TEMP/changed.txt" || true
+          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ] && [ -n "${{ github.event.before }}" ]; then
+            git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" > "$RUNNER_TEMP/changed.txt" || git ls-files > "$RUNNER_TEMP/changed.txt"
+          else
+            git ls-files > "$RUNNER_TEMP/changed.txt"
+          fi
+          echo "list=$RUNNER_TEMP/changed.txt" >> "$GITHUB_OUTPUT"
+
+      - name: Decide the mode
+        if: steps.guard.outputs.skip != 'true'
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "mode=dry-run" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=publish" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Materialise the sealing key (publish runs only)
+        if: steps.guard.outputs.skip != 'true' && steps.mode.outputs.mode == 'publish'
+        env:
+          SIGNET_SEALING_PRIVATE_KEY: ${{ secrets.SIGNET_SEALING_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SIGNET_SEALING_PRIVATE_KEY" ]; then
+            echo "SIGNET_SEALING_PRIVATE_KEY is not set; publish sealing cannot run." >&2
+            exit 1
+          fi
+          umask 077
+          printf '%s' "$SIGNET_SEALING_PRIVATE_KEY" > "$RUNNER_TEMP/signet-key"
+          echo "key_file=$RUNNER_TEMP/signet-key" >> "$GITHUB_OUTPUT"
+        id: key
+
+      - name: Seal
+        if: steps.guard.outputs.skip != 'true'
+        id: seal
+        uses: ./.signet/action
+        with:
+          config: ${{ inputs.config }}
+          mode: ${{ steps.mode.outputs.mode }}
+          key-file: ${{ steps.key.outputs.key_file }}
+          files-from: ${{ steps.changed.outputs.list }}
+
+      - name: Destroy the sealing key
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/signet-key" ]; then
+            shred -u "$RUNNER_TEMP/signet-key" 2>/dev/null || rm -f "$RUNNER_TEMP/signet-key"
+          fi
+
+      - name: Comment the dry run on the pull request
+        if: github.event_name == 'pull_request' && steps.guard.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUMMARY: ${{ steps.seal.outputs.summary }}
+        run: |
+          {
+            echo "Unrecorded dry run: these seals were computed with an ephemeral key and nothing was recorded."
+            echo ""
+            printf '%s\n' "$SUMMARY"
+          } > "$RUNNER_TEMP/pr-comment.md"
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file "$RUNNER_TEMP/pr-comment.md"
+
+      - name: Commit the seals back
+        if: steps.mode.outputs.mode == 'publish' && steps.guard.outputs.skip != 'true'
+        env:
+          SEALS_DIR: _seals
+        run: |
+          git config user.name "signet-seal"
+          git config user.email "signet-seal@localhost"
+          git add "$SEALS_DIR"
+          if git diff --cached --quiet; then
+            echo "No seal changes to commit."
+            exit 0
+          fi
+          FIRST=$(git diff --cached --name-only | grep '\.json$' | grep -v 'index.json' | grep -v 'anchor-pending' | grep -v 'run-summary' | head -1 || true)
+          git commit -m "seal: ${FIRST:-seals} (signet)" 
+          git push
+
+      - name: Open or update the anchor-pending tracking issue
+        if: steps.mode.outputs.mode == 'publish' && steps.guard.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f "_seals/anchor-pending.json" ]; then
+            gh label create seal-anchor-pending --description "Seals published without a chain anchor" 2>/dev/null || true
+            EXISTING=$(gh issue list --label seal-anchor-pending --state open --json number --jq '.[0].number // empty')
+            BODY="$RUNNER_TEMP/anchor-issue.md"
+            {
+              echo "These seals are published but not yet anchored on World Chain. The seals disclose it; anchoring completes when the anchor writer runs."
+              echo ""
+              echo '```json'
+              cat _seals/anchor-pending.json
+              echo '```'
+            } > "$BODY"
+            if [ -n "$EXISTING" ]; then
+              gh issue edit "$EXISTING" --body-file "$BODY"
+            else
+              gh issue create --title "Seals awaiting chain anchor" --label seal-anchor-pending --body-file "$BODY"
+            fi
+          fi

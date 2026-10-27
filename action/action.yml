@@ -1,0 +1,62 @@
+name: Signet seal (composite)
+
+description: >-
+  Canonicalise, hash, and sign Signet provenance seals for changed
+  content files. Publish mode signs with the sealing key file;
+  dry-run mode (pull requests) uses an ephemeral key and records
+  nothing. See action/README.md in the signet repository.
+
+inputs:
+  config:
+    description: Path to the surface config JSON, relative to the workspace.
+    required: false
+    default: signet.config.json
+  mode:
+    description: '"publish" or "dry-run".'
+    required: false
+    default: publish
+  key-file:
+    description: >-
+      Path to a mode-600 file holding the sealing private key
+      (publish mode only). The reusable workflow materialises it
+      from the repository secret and destroys it after the run.
+    required: false
+    default: ""
+  files-from:
+    description: Optional path to a newline-separated list of changed files to consider.
+    required: false
+    default: ""
+
+outputs:
+  summary:
+    description: The run summary markdown.
+    value: ${{ steps.seal.outputs.summary }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+
+    - name: Install the seal library's dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}/..
+      run: npm ci --omit=dev --no-audit --no-fund
+
+    - name: Run the sealing pass
+      id: seal
+      shell: bash
+      env:
+        SIGNET_MODE: ${{ inputs.mode }}
+        SIGNET_CONFIG: ${{ inputs.config }}
+        SIGNET_KEY_FILE: ${{ inputs.key-file }}
+        SIGNET_FILES_FROM: ${{ inputs.files-from }}
+      run: |
+        ARGS=(--root "$GITHUB_WORKSPACE" --config "$GITHUB_WORKSPACE/$SIGNET_CONFIG" --mode "$SIGNET_MODE")
+        if [ -n "$SIGNET_KEY_FILE" ]; then ARGS+=(--key-file "$SIGNET_KEY_FILE"); fi
+        if [ -n "$SIGNET_FILES_FROM" ]; then ARGS+=(--files-from "$SIGNET_FILES_FROM"); fi
+        node "${{ github.action_path }}/seal-run.mjs" "${ARGS[@]}" | tee "$RUNNER_TEMP/signet-summary.md"
+        echo "summary<<SIGNET_EOF" >> "$GITHUB_OUTPUT"
+        cat "$RUNNER_TEMP/signet-summary.md" >> "$GITHUB_OUTPUT"
+        echo "SIGNET_EOF" >> "$GITHUB_OUTPUT"

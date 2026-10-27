@@ -1,0 +1,5 @@
+{
+  "$schema": "https://mosvera.io/schema/0.1/composition",
+  "id": "dark-nova-glass",
+  "base": "nova-glass"
+}

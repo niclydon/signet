@@ -94,3 +94,22 @@ root from any static host; there is no build step. After
 `npm install`, refresh its vendored dependencies with
 `node scripts/vendor-deps.mjs` and check its module graph with
 `node scripts/check-verify-graph.mjs`.
+
+## Sealing Action
+
+`action/` and `.github/workflows/seal-reusable.yml` implement
+publish-time sealing for a publishing repository: canonicalise,
+hash, sign, optionally anchor, and commit the seals back, with
+unsigned dry runs in pull requests and two-layer loop prevention.
+Surface behaviour is set by one small public config file per repo
+(`examples/signet.config.json`). The sealing key exists only as a
+mode-600 temporary file during publish runs and is never present
+on pull-request runs. See `action/README.md`.
+
+## ProvenanceSeal component
+
+`components/ProvenanceSeal/` is the seal's visible form, a
+framework-free `<agent-seal>` element in three densities whose
+tier and state are always carried in words, registered in Mosvera
+under the id `provenance-seal`. See its README for the props
+contract and the token mapping.

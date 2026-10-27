@@ -153,3 +153,33 @@ the real AgentBook contract (`node scripts/live-w0-check.mjs`):
   validated by the Node suite over the identical check code, the
   module-graph check, and HTTP serving checks, not by a rendered
   click-through. First hosted deployment should include one.
+
+## Addendum, Oct 26, 2026 (later): sealing Action and component
+
+- action/seal-run.mjs implements the SPEC 9 sealing run with all
+  side effects injected; tests/action-seal.test.js covers the
+  postures: idempotent re-runs, supersession, non-canonical
+  content failing closed with nothing published, PR dry runs on
+  an ephemeral key writing nothing, exclusions, the approval gate
+  (fail-closed and not-approved fallback, confirmed record opens
+  publication; the gate never writes an approval claim into a
+  seal), anchor fail-open with a pending record, anchor-required
+  failing closed, and the commit-message loop guard. The
+  composite action and the reusable workflow around it carry key
+  custody (mode-600 materialisation, always-run destruction, no
+  key on PR runs), the seal-only commit-back, and the
+  seal-anchor-pending tracking issue.
+- components/ProvenanceSeal is the SPEC 8 component: a
+  framework-free <agent-seal> element, three densities, tier
+  structural in the mark and verbal in every density (pill
+  included), sealed-unchecked as the honest static default.
+  tests/component.test.js covers the line model and renderer.
+- Mosvera registration, live: template and composition
+  "provenance-seal" saved and compiling to the component tokens.
+  The dark-nova-glass correction the spec called for is done:
+  the composition compiled to another aesthetic's tokens
+  (surface #1e1a18, accent #e05b45); compositions cannot carry
+  token overrides in the current schema, so a new template
+  "nova-glass" holds the true tokens and the composition now
+  binds to it. Verified by recompiling: surface #1C1C1E, border
+  #4A7FA5, accent #C9933A, accent_2 #8ABAD3, radius 0px.

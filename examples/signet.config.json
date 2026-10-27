@@ -1,0 +1,1 @@
+{"anchor":{"command":null,"required":false,"retries":3},"approval":{"fallback":"fail","recordsDir":"_approvals","required":false},"canonicalUrlBase":"https://example.com/","content":["posts/**"],"exclude":["posts/drafts/**","posts/private/**"],"hashScope":"body","persona":"Nova","sealsDir":"_seals","surface":"personal-website"}
