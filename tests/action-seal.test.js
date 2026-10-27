@@ -50,14 +50,12 @@ test("publish seals a new file, and the seal verifies offline", async () => {
   assert.equal(out.ok, true);
   assert.equal(out.results[0].status, "sealed");
   const seal = JSON.parse(await readFile(join(root, "_seals/posts/a.md.json"), "utf8"));
-  assert.equal(seal.signer.wallet, REAL_ADDRESS);
-  const checked = await verifySeal({
-    seal,
+  assert.equal(seal.agent.wallet_address, REAL_ADDRESS);
+  const checked = await verifySeal(seal, {
     content: POST,
-    providers: { agentBook: async () => null, anchor: async () => null },
+    agentBook: { async lookupHuman() { return null; } },
   });
-  const signature = checked.checks.find((c) => c.name === "signature");
-  assert.equal(signature.status, "pass");
+  assert.equal(checked.checks.signature.status, "pass");
   const index = JSON.parse(await readFile(join(root, "_seals/index.json"), "utf8"));
   assert.equal(index.seals["posts/a.md"].content_hash, contentHash(POST));
 });
