@@ -125,3 +125,31 @@ the real AgentBook contract (`node scripts/live-w0-check.mjs`):
   approval record exists; the build proves the negative (claims
   cannot be created by `createSeal` and cannot be confirmed by
   `verifySeal`) rather than a positive path.
+
+## Addendum, Oct 26, 2026: verify page and portability
+
+- src/util.js now takes SHA-256 from @noble/hashes instead of
+  node:crypto (and drops Buffer), so the identical library code
+  runs in Node and in the browser; the full pre-existing suite
+  passes unchanged (44 tests), which is the byte-compatibility
+  evidence for the swap.
+- verify/ adds the static verify page: live AgentBook and anchor
+  providers over plain JSON-RPC (verify/browser-providers.js), a
+  labelled sample seal (published Hardhat test key 0, recorded
+  registration fixture), and Nova Glass styling per the design
+  spec. tests/verify-page.test.js drives the providers through a
+  stubbed RPC: 9 tests, including the pinned human-hash constant
+  for uint256 1 computed independently in Python, the
+  wrong-chain refusal, and RPC-failure-is-check-incomplete.
+  Suite total: 53 tests, 53 pass.
+- The page's module graph is checked by
+  scripts/check-verify-graph.mjs (20 files resolved). That check
+  caught a real defect before first commit: the vendored @noble
+  trees use extensionless bare specifiers (for example
+  @noble/hashes/crypto) that browsers cannot resolve; the page's
+  importmap now maps each one explicitly.
+- Not done: a rendered-browser pass. The available browser
+  harness refuses loopback addresses by policy, so the page was
+  validated by the Node suite over the identical check code, the
+  module-graph check, and HTTP serving checks, not by a rendered
+  click-through. First hosted deployment should include one.

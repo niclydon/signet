@@ -1,0 +1,43 @@
+{
+  "label": "Sample seal made with the published Hardhat test key 0. The registration below is a recorded fixture for a synthetic test human, not a live lookup.",
+  "seal": {
+    "seal_version": "w3-seal/1",
+    "c14n": "w3-text-v1",
+    "content_hash": "sha256:aa3be3888a8cb75e0c51d76f646062dad5366842e6b08d46fd5e23a6a6e1d515",
+    "content": {
+      "surface": "web",
+      "content_id": "signet-demo-post",
+      "canonical_url": "https://example.invalid/signet-demo-post",
+      "title_hash": null,
+      "attachments": []
+    },
+    "agent": {
+      "persona": "signet-demo",
+      "wallet_address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "wallet_label": "the provenance sealing wallet"
+    },
+    "signature": {
+      "scheme": "eip191-personal-sign",
+      "signed_payload": "w3-provenance-seal:v1 | web | sha256:aa3be3888a8cb75e0c51d76f646062dad5366842e6b08d46fd5e23a6a6e1d515 | sha256:c37a248cc530f6ccd737893a2329dbbdb2f64716efba67ef01453ee84e5e936b",
+      "value": "0xa8e819a2057a9958f5819410109607d3978f34ce42ac05e1300630ef9ddc081e4bb53ac1cc197909ab51ef35850d67b7aa3bd98f186af86c7db2163e03861e8a1b"
+    },
+    "timestamps": {
+      "sealed_at": "2026-10-26T00:00:00Z",
+      "sealed_at_basis": "signer-claimed",
+      "anchor": null
+    },
+    "approval": {
+      "tier": "not-approved",
+      "proof_hash": null,
+      "proof_type": null,
+      "approved_at": null
+    },
+    "supersedes": null,
+    "superseded_by": null
+  },
+  "content": "# Why this post carries a seal\n\nThis is a sample post for the Signet verify page, sealed with a\npublished test key so anyone can reproduce it. A real seal is\nmade the same way: the text is hashed, the sealing wallet signs\nthe hash, and anyone can check that the wallet is registered\nto a verified unique human.\n",
+  "fixture_registration": {
+    "wallet_address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "humanHash": "bcacbaf197ac665263d0e8252dfb325d1238b83c73b860c5cce726362bdc9628"
+  }
+}

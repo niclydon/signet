@@ -1,16 +1,18 @@
 // Shared primitives: hashing, hex, deterministic JSON.
-// SHA-256 comes from Node's standard library (OpenSSL), not from a
-// bundled dependency, so content hashes can be cross-checked with any
-// system tool (sha256sum, Python hashlib) byte for byte.
+// SHA-256 comes from @noble/hashes (pure JavaScript, audited), so
+// the identical code runs in Node and in the browser; the verify
+// page loads these modules directly. Output is plain SHA-256 and
+// stays cross-checkable with any system tool (sha256sum, Python
+// hashlib) byte for byte; the canonicalisation vectors prove it.
 
-import { createHash } from "node:crypto";
+import { sha256 } from "@noble/hashes/sha2.js";
 
 export function sha256Bytes(bytes) {
-  return createHash("sha256").update(bytes).digest();
+  return sha256(bytes);
 }
 
 export function sha256Hex(bytes) {
-  return sha256Bytes(bytes).toString("hex");
+  return bytesToHex(sha256Bytes(bytes));
 }
 
 /** Hash in the seal format's display form: "sha256:<64 hex>". */
@@ -19,7 +21,9 @@ export function sha256Prefixed(bytes) {
 }
 
 export function bytesToHex(bytes) {
-  return Buffer.from(bytes).toString("hex");
+  let out = "";
+  for (const b of bytes) out += b.toString(16).padStart(2, "0");
+  return out;
 }
 
 export function hexToBytes(hex) {
@@ -27,7 +31,11 @@ export function hexToBytes(hex) {
   if (clean.length % 2 !== 0 || /[^0-9a-fA-F]/.test(clean)) {
     throw new Error("invalid hex string");
   }
-  return new Uint8Array(Buffer.from(clean, "hex"));
+  const out = new Uint8Array(clean.length / 2);
+  for (let i = 0; i < out.length; i++) {
+    out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
+  }
+  return out;
 }
 
 export function utf8(text) {

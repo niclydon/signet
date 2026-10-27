@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signet Verify</title>
+<style>
+  :root {
+    --graphite: #1C1C1E;
+    --glass: rgba(28, 28, 30, .78);
+    --cerulean: #4A7FA5;
+    --label-cyan: #8ABAD3;
+    --gold: #C9933A;
+    --ink: #EDEDF0;
+    --dim: #A7A7AD;
+    --line: rgba(138, 186, 211, .25);
+    --cut: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #111113; color: var(--ink);
+    font: 16px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+  header { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  header svg { flex: none; }
+  h1 { font-size: 26px; margin: 0; letter-spacing: .2px; }
+  .sub { color: var(--dim); margin: 4px 0 24px; }
+  .panel {
+    background: var(--glass); border: 1px solid var(--line);
+    clip-path: var(--cut); padding: 20px; margin-bottom: 18px;
+    backdrop-filter: blur(6px);
+  }
+  .panel h2 { font-size: 15px; margin: 0 0 10px; color: var(--label-cyan);
+    text-transform: uppercase; letter-spacing: 1.2px; }
+  label { display: block; font-size: 13px; color: var(--dim); margin: 12px 0 6px; }
+  textarea {
+    width: 100%; min-height: 110px; resize: vertical;
+    background: rgba(0,0,0,.35); color: var(--ink);
+    border: 1px solid var(--line); padding: 10px; font: 13px/1.45 ui-monospace, Menlo, monospace;
+  }
+  textarea.short { min-height: 120px; }
+  button {
+    background: var(--cerulean); color: #fff; border: 0; cursor: pointer;
+    padding: 10px 18px; font-size: 15px; clip-path: var(--cut); margin-top: 14px;
+  }
+  button.secondary { background: transparent; border: 1px solid var(--cerulean); color: var(--label-cyan); margin-left: 10px; }
+  .banner { display: none; padding: 16px 20px; margin-bottom: 18px; clip-path: var(--cut);
+    border: 1px solid var(--line); background: var(--glass); }
+  .banner.show { display: block; }
+  .banner .state { font-size: 20px; font-weight: 600; }
+  .banner .when { color: var(--dim); font-size: 13px; margin-top: 4px; }
+  .banner .summary { margin-top: 8px; }
+  .banner.verified { border-color: var(--cerulean); }
+  .banner.failed { border-color: #B0492F; }
+  .banner.incomplete { border-color: var(--gold); }
+  table.checks { width: 100%; border-collapse: collapse; }
+  table.checks td, table.checks th { padding: 9px 8px; border-top: 1px solid var(--line);
+    text-align: left; vertical-align: top; font-size: 14px; }
+  table.checks th { color: var(--label-cyan); font-weight: 600; white-space: nowrap; width: 170px; }
+  .chip { display: inline-block; padding: 1px 9px; font-size: 12px; border: 1px solid var(--line);
+    color: var(--label-cyan); white-space: nowrap; }
+  .chip.pass { border-color: var(--cerulean); color: #BFD9E8; }
+  .chip.fail { border-color: #B0492F; color: #E8A08C; }
+  .chip.incomplete, .chip.skipped { border-color: var(--gold); color: var(--gold); }
+  .detail { color: var(--dim); font-size: 13px; }
+  details { margin-top: 14px; }
+  summary { cursor: pointer; color: var(--label-cyan); font-size: 14px; }
+  pre { overflow: auto; background: rgba(0,0,0,.35); padding: 12px; font-size: 12px; }
+  .note { font-size: 13px; color: var(--dim); }
+  .gold { color: var(--gold); }
+  a { color: var(--label-cyan); }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "@noble/curves/secp256k1.js": "./vendor/@noble/curves/esm/secp256k1.js",
+    "@noble/hashes/sha2.js": "./vendor/@noble/hashes/esm/sha2.js",
+    "@noble/hashes/sha3.js": "./vendor/@noble/hashes/esm/sha3.js",
+    "@noble/curves/bls12-381": "./vendor/@noble/curves/esm/bls12-381.js",
+    "@noble/curves/ed25519": "./vendor/@noble/curves/esm/ed25519.js",
+    "@noble/curves/ed448": "./vendor/@noble/curves/esm/ed448.js",
+    "@noble/curves/secp256k1": "./vendor/@noble/curves/esm/secp256k1.js",
+    "@noble/hashes/blake2": "./vendor/@noble/hashes/esm/blake2.js",
+    "@noble/hashes/blake3": "./vendor/@noble/hashes/esm/blake3.js",
+    "@noble/hashes/crypto": "./vendor/@noble/hashes/esm/crypto.js",
+    "@noble/hashes/hkdf": "./vendor/@noble/hashes/esm/hkdf.js",
+    "@noble/hashes/hmac": "./vendor/@noble/hashes/esm/hmac.js",
+    "@noble/hashes/legacy": "./vendor/@noble/hashes/esm/legacy.js",
+    "@noble/hashes/pbkdf2": "./vendor/@noble/hashes/esm/pbkdf2.js",
+    "@noble/hashes/scrypt": "./vendor/@noble/hashes/esm/scrypt.js",
+    "@noble/hashes/sha2": "./vendor/@noble/hashes/esm/sha2.js",
+    "@noble/hashes/sha3": "./vendor/@noble/hashes/esm/sha3.js",
+    "@noble/hashes/sha3-addons": "./vendor/@noble/hashes/esm/sha3-addons.js",
+    "@noble/hashes/utils": "./vendor/@noble/hashes/esm/utils.js",
+    "@noble/hashes/": "./vendor/@noble/hashes/esm/",
+    "@noble/curves/": "./vendor/@noble/curves/esm/"
+  }
+}
+</script>
+</head>
+<body>
+<main>
+  <header>
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="15" fill="none" stroke="#C9933A" stroke-width="2.5"/>
+      <circle cx="20" cy="20" r="9.5" fill="none" stroke="#C9933A" stroke-width="1.4"/>
+      <path d="M14.5 20.5 L18.5 24 L26 16" fill="none" stroke="#8ABAD3" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <h1>Signet Verify</h1>
+      <div class="sub">Check a provenance seal for agent-written content.</div>
+    </div>
+  </header>
+
+  <p class="sub">A seal claims three things: this exact text was hashed, a wallet
+  signed that hash, and that wallet is registered to a verified unique human.
+  This page re-runs each check separately, in your browser, and reports each
+  one in words. Nothing here is taken on trust from the seal itself.</p>
+
+  <div id="banner" class="banner" role="status"></div>
+
+  <section class="panel">
+    <h2>Seal and content</h2>
+    <label for="sealInput">Seal record (JSON)</label>
+    <textarea id="sealInput" class="short" spellcheck="false"
+      placeholder='Paste a seal record, e.g. {"seal_version":"w3-seal/1", ...}'></textarea>
+    <label for="contentInput">Content (optional; when supplied, its hash is recomputed and compared)</label>
+    <textarea id="contentInput" spellcheck="false"
+      placeholder="Paste the exact text the seal covers"></textarea>
+    <div>
+      <button id="runBtn" type="button">Run the checks</button>
+      <button id="sampleBtn" type="button" class="secondary">Load the sample seal</button>
+    </div>
+    <p class="note" id="modeNote"></p>
+  </section>
+
+  <section class="panel" id="resultsPanel" hidden>
+    <h2>Checks</h2>
+    <table class="checks"><tbody id="checkRows"></tbody></table>
+    <details>
+      <summary>The full verification record (w3-verify-result/1)</summary>
+      <pre id="rawResult"></pre>
+    </details>
+  </section>
+
+  <p class="note">A seal that has not been checked here claims only that it was
+  sealed. Registration is read live from the AgentBook registry on World Chain
+  at the moment of the check, and the check time is always shown. A seal with
+  no anchor says so: its timing is the signer's claim, not a chain proof.
+  Human approved is a separate claim from sealed, and is reported separately.
+  Sample seals use a published test key and a recorded registration fixture,
+  and are labelled as samples.</p>
+</main>
+
+<script type="module">
+import { verifySeal } from "../src/verify.js";
+import { createBrowserAgentBook, createBrowserAnchorChain } from "./browser-providers.js";
+
+const $ = (id) => document.getElementById(id);
+const banner = $("banner");
+let sampleMode = false;
+let fixture = null;
+
+const CHECK_LABELS = [
+  ["seal", "Seal record"],
+  ["content", "Content match"],
+  ["signature", "Signature"],
+  ["agentbook", "Human registration"],
+  ["anchor", "Chain anchor"],
+  ["approval", "Human approval"],
+];
+const STATUS_WORDS = {
+  pass: "Pass",
+  fail: "Fail",
+  skipped: "Skipped",
+  incomplete: "Could not be checked",
+  "not-run": "Not run",
+};
+const STATE_WORDS = {
+  verified: "Verified",
+  "verified-superseded": "Verified, superseded",
+  failed: "Checks failed",
+  "check-incomplete": "Check incomplete",
+};
+
+function showBanner(stateWord, summaryText, whenText, cls) {
+  banner.className = "banner show " + (cls || "");
+  banner.innerHTML = "";
+  const s = document.createElement("div"); s.className = "state"; s.textContent = stateWord;
+  const w = document.createElement("div"); w.className = "when"; w.textContent = whenText;
+  const m = document.createElement("div"); m.className = "summary"; m.textContent = summaryText;
+  banner.append(s, w, m);
+}
+
+function renderResult(result) {
+  showBanner(
+    STATE_WORDS[result.state] ?? result.state,
+    result.summary,
+    `Checked at ${result.checked_at}. Registration status is as of this check.`,
+    result.state === "verified" || result.state === "verified-superseded"
+      ? "verified"
+      : result.state === "failed" ? "failed" : "incomplete",
+  );
+  const rows = $("checkRows");
+  rows.innerHTML = "";
+  for (const [key, label] of CHECK_LABELS) {
+    const check = result.checks[key] ?? { status: "not-run" };
+    const tr = document.createElement("tr");
+    const th = document.createElement("th"); th.textContent = label;
+    const td = document.createElement("td");
+    const chip = document.createElement("span");
+    chip.className = "chip " + check.status;
+    chip.textContent = STATUS_WORDS[check.status] ?? check.status;
+    td.append(chip);
+    if (check.detail) {
+      const d = document.createElement("div"); d.className = "detail"; d.textContent = check.detail;
+      td.append(d);
+    }
+    if (key === "agentbook" && check.human_id_hash) {
+      const d = document.createElement("div"); d.className = "detail";
+      d.textContent = "Registered human, hash form: " + check.human_id_hash;
+      td.append(d);
+    }
+    tr.append(th, td);
+    rows.append(tr);
+  }
+  $("rawResult").textContent = JSON.stringify(result, null, 2);
+  $("resultsPanel").hidden = false;
+}
+
+async function run() {
+  let seal;
+  try {
+    seal = JSON.parse($("sealInput").value);
+  } catch {
+    showBanner("Sealed, not yet checked", "The seal record is not valid JSON, so no check could run.", "", "incomplete");
+    return;
+  }
+  showBanner("Checking", "Running the checks now.", "", "incomplete");
+  const content = $("contentInput").value;
+  const options = { content: content.length ? content : null };
+  if (sampleMode && fixture) {
+    const wanted = String(fixture.fixture_registration.wallet_address).toLowerCase();
+    options.agentBook = {
+      source: "recorded-fixture",
+      async lookupHuman(address) {
+        return String(address).toLowerCase() === wanted
+          ? { humanHash: fixture.fixture_registration.humanHash }
+          : null;
+      },
+    };
+    options.anchorChain = null;
+  } else {
+    options.agentBook = createBrowserAgentBook({});
+    options.anchorChain = createBrowserAnchorChain({});
+  }
+  const result = await verifySeal(seal, options);
+  renderResult(result);
+}
+
+$("runBtn").addEventListener("click", run);
+
+$("sampleBtn").addEventListener("click", async () => {
+  const response = await fetch("./demo-fixture.json");
+  fixture = await response.json();
+  sampleMode = true;
+  $("sealInput").value = JSON.stringify(fixture.seal, null, 2);
+  $("contentInput").value = fixture.content;
+  $("modeNote").textContent = "Sample mode: " + fixture.label;
+  showBanner("Sealed, not yet checked", "This sample seal has not been checked yet. Run the checks.", "", "");
+});
+
+const params = new URLSearchParams(location.search);
+if (params.get("sample") === "1") $("sampleBtn").click();
+</script>
+</body>
+</html>

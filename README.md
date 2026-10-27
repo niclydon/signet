@@ -85,3 +85,12 @@ record is not a C2PA manifest and does not claim to be one.
 ## License
 
 Apache-2.0.
+
+## Verify page
+
+`verify/` holds a static page that re-runs a seal's checks in the
+reader's browser (see `verify/README.md`). Serve the repository
+root from any static host; there is no build step. After
+`npm install`, refresh its vendored dependencies with
+`node scripts/vendor-deps.mjs` and check its module graph with
+`node scripts/check-verify-graph.mjs`.
