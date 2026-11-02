@@ -13,10 +13,18 @@
 // The verifier validates those annotations against external sources
 // (the chain, the seal index), never on the signature's authority.
 //
-// The approved tier is HARD-DISABLED in this build: W2's canonical
-// approval record does not exist yet, so createSeal always writes
-// tier "not-approved" and refuses, with ApprovedTierDisabled, any
-// attempt to seal with an approval claim (SPEC 5.2 interim rule).
+// The approved tier (SPEC 5.2): createSeal writes tier
+// "not-approved" by default. A caller may pass an approval claim
+// ({ proof_hash, proof_type, approved_at }, normally produced by
+// approvalFromVistoRecord in visto-approval.js from a W2
+// approval-record/1), which createSeal validates in shape and then
+// writes as tier "approved", inside the signed payload. The claim
+// is only as good as the record behind it: verifySeal confirms it
+// against the approval service at check time (SPEC 5.2 two-step),
+// and a claim whose record cannot be confirmed fails as
+// approval-not-confirmed. ApprovedTierDisabled is kept as a
+// deprecated export from the interim build, when the tier was
+// hard-disabled because no approval record existed yet.
 
 import { C14N_ID, canonicalBytes, contentHash } from "./canonicalize.js";
 import { canonicalJson, sha256Hex, sha256Prefixed, utf8 } from "./util.js";
@@ -25,7 +33,7 @@ export const SEAL_VERSION = "w3-seal/1";
 export const SIGN_DOMAIN = "w3-provenance-seal:v1";
 
 export class ApprovedTierDisabled extends Error {
-  constructor(message = "the human-approved tier is hard-disabled until W2's canonical approval record exists (SPEC 5.2); content can only be sealed as not-approved") {
+  constructor(message = "deprecated: the human-approved tier is enabled; createSeal validates an approval claim's shape and writes it into the signed payload (SPEC 5.2)") {
     super(message);
     this.name = "ApprovedTierDisabled";
     this.code = "approved-tier-disabled";
@@ -74,7 +82,9 @@ export function signedText(seal) {
  * Optional: title (hashed, never stored), sealedAt (ISO string;
  *   defaults to now), supersedes (content_hash of the prior seal),
  *   attachments ([{ name, bytes | sha256 }]).
- * Any `approval` option throws ApprovedTierDisabled.
+ * Optional: approval ({ proof_hash, proof_type, approved_at })
+ *   claims the human-approved tier; the shape is validated and the
+ *   claim is signed into the seal. Omit it to seal as not-approved.
  */
 export function createSeal(options) {
   const {
@@ -91,8 +101,24 @@ export function createSeal(options) {
     approval = undefined,
   } = options ?? {};
 
+  let approvalRecord = {
+    tier: "not-approved",
+    proof_hash: null,
+    proof_type: null,
+    approved_at: null,
+  };
   if (approval !== undefined && approval !== null) {
-    throw new ApprovedTierDisabled();
+    const { proof_hash, proof_type, approved_at } = approval ?? {};
+    if (typeof proof_hash !== "string" || !/^sha256:[a-f0-9]{64}$/.test(proof_hash)) {
+      throw new TypeError("createSeal: approval.proof_hash must be a sha256: hash");
+    }
+    if (typeof proof_type !== "string" || proof_type.length === 0) {
+      throw new TypeError("createSeal: approval.proof_type is required");
+    }
+    if (typeof approved_at !== "string" || Number.isNaN(Date.parse(approved_at))) {
+      throw new TypeError("createSeal: approval.approved_at must be an ISO timestamp");
+    }
+    approvalRecord = { tier: "approved", proof_hash, proof_type, approved_at };
   }
   if (typeof content !== "string") throw new TypeError("createSeal: content must be a string");
   for (const [name, value] of Object.entries({ surface, contentId, canonicalUrl, persona })) {
@@ -137,12 +163,7 @@ export function createSeal(options) {
       sealed_at_basis: "signer-claimed",
       anchor: null,
     },
-    approval: {
-      tier: "not-approved",
-      proof_hash: null,
-      proof_type: null,
-      approved_at: null,
-    },
+    approval: approvalRecord,
     supersedes,
     superseded_by: null,
   };

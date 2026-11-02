@@ -124,3 +124,32 @@ export function createBrowserAnchorChain({ rpcUrls = DEFAULT_RPC_URLS, fetchImpl
     },
   };
 }
+
+/**
+ * Approval-service provider in the shape verifySeal consumes,
+ * backed by this site's /api/approval-confirm endpoint, which
+ * re-confirms the seal's approval record hash against the Visto
+ * approval service. "valid" confirms; "revoked" and "unknown" do
+ * not; every other outcome (endpoint unconfigured, upstream
+ * unreachable) throws, so verifySeal reports the approval as not
+ * re-checked at this time (SPEC 5.2), never as a fresh pass.
+ */
+export function createBrowserApprovalService({ endpoint = "/api/approval-confirm", fetchImpl = fetch } = {}) {
+  return {
+    source: "visto-reconfirm",
+    async confirmApproval({ proofHash }) {
+      const res = await fetchImpl(`${endpoint}?proof_hash=${encodeURIComponent(proofHash)}`);
+      if (!res || res.status !== 200) {
+        throw new Error(`approval confirmation endpoint failed: HTTP ${res?.status ?? "no response"}`);
+      }
+      const body = await res.json();
+      if (body?.status === "valid") {
+        return { confirmed: true, status: "valid", consumed: body.consumed ?? null, lastConfirmedAt: body.checked_at ?? new Date().toISOString() };
+      }
+      if (body?.status === "revoked" || body?.status === "unknown") {
+        return { confirmed: false, status: body.status };
+      }
+      throw new Error("approval proof not re-checked at this time");
+    },
+  };
+}

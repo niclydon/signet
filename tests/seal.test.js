@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createSeal, ApprovedTierDisabled, withAnchor, withSupersededBy } from "../src/seal.js";
+import { createSeal, withAnchor, withSupersededBy } from "../src/seal.js";
 import { verifySeal, MemorySealIndex } from "../src/verify.js";
 import { MockLocalChain } from "../src/anchor.js";
 import { recoverMessageAddress, privateKeyToAddress } from "../src/wallet.js";
@@ -48,16 +48,30 @@ test("sealing identical content twice is deterministic except sealed_at input", 
   assert.deepEqual(a, b);
 });
 
-test("approved tier is hard-disabled at seal time", () => {
-  assert.throws(
-    () =>
-      createSeal(
-        fixtureSealOptions({
-          approval: { tier: "approved", proofHash: "sha256:" + "0".repeat(64) },
-        }),
-      ),
-    (err) => err instanceof ApprovedTierDisabled && err.code === "approved-tier-disabled",
-  );
+test("approved tier writes a validated claim into the signed payload", () => {
+  const approval = {
+    proof_hash: "sha256:" + "1".repeat(64),
+    proof_type: "visto-approval-record/1",
+    approved_at: "2026-11-02T15:05:00Z",
+  };
+  const seal = createSeal(fixtureSealOptions({ approval }));
+  assert.equal(seal.approval.tier, "approved");
+  assert.equal(seal.approval.proof_hash, approval.proof_hash);
+  assert.equal(seal.approval.proof_type, approval.proof_type);
+  assert.equal(seal.approval.approved_at, approval.approved_at);
+  assert.equal(recoverMessageAddress(signedText(seal), seal.signature.value), TEST_ADDRESS_0);
+});
+
+test("approved tier refuses malformed claims", () => {
+  const base = {
+    proof_hash: "sha256:" + "1".repeat(64),
+    proof_type: "visto-approval-record/1",
+    approved_at: "2026-11-02T15:05:00Z",
+  };
+  assert.throws(() => createSeal(fixtureSealOptions({ approval: { ...base, proof_hash: "sha256:zz" } })), TypeError);
+  assert.throws(() => createSeal(fixtureSealOptions({ approval: { ...base, proof_type: "" } })), TypeError);
+  assert.throws(() => createSeal(fixtureSealOptions({ approval: { ...base, approved_at: "not a date" } })), TypeError);
+  assert.throws(() => createSeal(fixtureSealOptions({ approval: { tier: "approved", proofHash: base.proof_hash } })), TypeError);
 });
 
 test("anchor annotation does not break the signature, and verifies against the mock chain", async () => {

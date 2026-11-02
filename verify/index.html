@@ -155,7 +155,7 @@
 
 <script type="module">
 import { verifySeal } from "../src/verify.js";
-import { createBrowserAgentBook, createBrowserAnchorChain } from "./browser-providers.js";
+import { createBrowserAgentBook, createBrowserAnchorChain, createBrowserApprovalService } from "./browser-providers.js";
 
 const $ = (id) => document.getElementById(id);
 const banner = $("banner");
@@ -254,6 +254,7 @@ async function run() {
   } else {
     options.agentBook = createBrowserAgentBook({});
     options.anchorChain = createBrowserAnchorChain({});
+    options.approvalService = createBrowserApprovalService({});
   }
   const result = await verifySeal(seal, options);
   renderResult(result);
