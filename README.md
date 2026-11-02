@@ -44,11 +44,14 @@ Unanchored seals say so.
 
 Content that changes gets a new seal; seals are never mutated, and a
 superseded seal verifies as superseded, with a link to its successor.
-A separate human-approved tier exists in the format for content a
-human reviewed and approved through a signed approval record bound
-to the exact content hash. It is disabled in this release: everything
-publishes as not-approved, and any approved claim fails verification
-as `approval-not-confirmed`.
+A separate human-approved tier exists for content a human approved
+through a signed approval record bound to the exact content hash
+(the W2 Visto approval service, approval-record/1). Sealing with a
+validated approval claim writes tier `approved` into the signed
+seal; verification re-confirms the record against the approval
+service and an approved claim that cannot be confirmed fails as
+`approval-not-confirmed`. Content without an approval record still
+publishes as not-approved, which claims nothing.
 
 ## Repository layout
 
@@ -56,6 +59,9 @@ as `approval-not-confirmed`.
 - `src/seal.js`: seal creation, the signed-core/annotation split
   (post-signing annotations such as the anchor are verified against
   their external sources, so anchoring cannot invalidate a seal).
+- `src/visto-approval.js`: Visto approval-record/1 support for the
+  human-approved tier: record hashing, issuer signature checks, the
+  seal-time approval gate, and the re-confirmation provider.
 - `src/verify.js`: verification returning `w3-verify-result/1`.
 - `src/anchor.js`: the anchor provider interface and a mock local
   chain. The World Chain provider is stacked behind the interface
