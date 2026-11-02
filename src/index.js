@@ -35,6 +35,18 @@ export {
 export { w0AgentBookProvider } from "./agentbook-w0.js";
 
 export {
+  VISTO_PROOF_TYPE,
+  VISTO_RECORD_VERSION,
+  vistoCanonicalHash,
+  vistoRecordHash,
+  checkVistoRecordSignature,
+  approvalFromVistoRecord,
+  recordBindsPayload,
+  recordApproverMatches,
+  createVistoApprovalService,
+} from "./visto-approval.js";
+
+export {
   WORLD_CHAIN_ID,
   anchorCalldata,
   AnchorNotConfigured,

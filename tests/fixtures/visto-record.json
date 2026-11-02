@@ -1,0 +1,46 @@
+{
+  "record": {
+    "record_version": "approval-record/1",
+    "issuer": "https://approvals.niclydon.io",
+    "request_id": "11111111-2222-3333-4444-555555555555",
+    "action_class": "publish.public",
+    "action_hash": "e850f37d891225fbec7f4d46b4e8f4aece6597ea2e2f4a8751bc11071c2561d9",
+    "payload_hash": "sha256:0082bc7dfecf94ace3443a1cc9e42257ff051418d13ff87890be18305ef514bd",
+    "requesting_agent": {
+      "id": "nova"
+    },
+    "issued_at": "2026-11-02T15:00:00Z",
+    "expires_at": "2026-11-02T15:15:00Z",
+    "approved_at": "2026-11-02T15:05:00Z",
+    "decision": "approved",
+    "required_tier": 2,
+    "performed_tier": 2,
+    "proof_kinds": [
+      "uniqueness_per_action"
+    ],
+    "audit_entry_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "session_id_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "session_nullifier_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "presence_nullifier_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "human_id_hash": "sha256:8b9034b9387d3f5bdfe38e56d132425c351484b21b636f2816564773a118822f",
+    "signature": {
+      "alg": "ed25519",
+      "key_id": "test-key-1",
+      "value": "FPDTtHG-khnOnixsqobsFynat29qL1CIwl8wFW4dA_VFivi2Nh9RBdv_dF33z8WZe5gy0MLGDLS_SfwCXin8CQ"
+    }
+  },
+  "record_hash": "sha256:bb3988aaf7d7c1b0dccc10db97e1383a5aaa38683a1623327c0807c1ccc70d12",
+  "payload": {
+    "action_class": "publish.public",
+    "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "surface": "dev.to"
+  },
+  "payload_hash": "sha256:0082bc7dfecf94ace3443a1cc9e42257ff051418d13ff87890be18305ef514bd",
+  "action_hash": "e850f37d891225fbec7f4d46b4e8f4aece6597ea2e2f4a8751bc11071c2561d9",
+  "trust": {
+    "issuer": "https://approvals.niclydon.io",
+    "keys": {
+      "test-key-1": "044kIG43KAfFMILoy6jTEiSIOLrwhIbUYYNSetlixL4"
+    }
+  }
+}
